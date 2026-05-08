@@ -1,9 +1,859 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>My Site</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>И Я — личный сайт</title>
+  <meta name="description" content="Личный сайт И Я: машинное обучение, аналитика, искусственный интеллект, оптимизация и цифровые проекты." />
+  <style>
+    :root {
+      --bg: #0b1020;
+      --bg-soft: #111831;
+      --card: rgba(255, 255, 255, 0.075);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #eef3ff;
+      --muted: #aab6d3;
+      --accent: #7c5cff;
+      --accent-2: #00d4ff;
+      --accent-3: #33e1a3;
+      --border: rgba(255, 255, 255, 0.14);
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      --radius: 24px;
+      --max: 1180px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(124, 92, 255, 0.35), transparent 38%),
+        radial-gradient(circle at top right, rgba(0, 212, 255, 0.22), transparent 34%),
+        linear-gradient(180deg, #0b1020 0%, #070a14 100%);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.045;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      z-index: 1;
+    }
+
+    .container {
+      width: min(100% - 32px, var(--max));
+      margin: 0 auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(11, 16, 32, 0.74);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .logo-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 10px 35px rgba(124, 92, 255, 0.35);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-weight: 700;
+      transition: 0.22s ease;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    .btn.primary {
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 14px 40px rgba(124, 92, 255, 0.34);
+    }
+
+    .hero {
+      padding: 92px 0 70px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 42px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 14px;
+      margin-bottom: 22px;
+    }
+
+    .pulse {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent-3);
+      box-shadow: 0 0 0 0 rgba(51, 225, 163, 0.7);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(51, 225, 163, 0.7); }
+      70% { box-shadow: 0 0 0 11px rgba(51, 225, 163, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(51, 225, 163, 0); }
+    }
+
+    h1 {
+      font-size: clamp(44px, 7vw, 86px);
+      line-height: 0.96;
+      letter-spacing: -0.075em;
+      margin-bottom: 24px;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #ffffff, #9fdcff 50%, #a994ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-text {
+      color: var(--muted);
+      font-size: 19px;
+      max-width: 690px;
+      margin-bottom: 32px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 34px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      max-width: 680px;
+    }
+
+    .stat {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .profile-card {
+      position: relative;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .profile-card::before {
+      content: "";
+      position: absolute;
+      inset: -80px -60px auto auto;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: rgba(0, 212, 255, 0.25);
+      filter: blur(10px);
+    }
+
+    .avatar {
+      height: 360px;
+      border-radius: 26px;
+      background:
+        linear-gradient(135deg, rgba(124,92,255,0.75), rgba(0,212,255,0.45)),
+        radial-gradient(circle at 40% 30%, rgba(255,255,255,0.75), transparent 8%),
+        #151d3a;
+      display: grid;
+      place-items: center;
+      font-size: 96px;
+      font-weight: 900;
+      letter-spacing: -0.08em;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .avatar::after {
+      content: "ML • AI • DATA";
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 18px;
+      background: rgba(0,0,0,0.18);
+      backdrop-filter: blur(12px);
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      text-align: center;
+    }
+
+    .profile-info {
+      padding: 20px 4px 4px;
+    }
+
+    .profile-info h3 {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .profile-info p {
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      color: #dce6ff;
+      font-size: 13px;
+    }
+
+    section {
+      padding: 70px 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .section-kicker {
+      color: var(--accent-2);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: clamp(32px, 4vw, 54px);
+      line-height: 1.04;
+      letter-spacing: -0.055em;
+    }
+
+    .section-description {
+      color: var(--muted);
+      max-width: 520px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      background: var(--card);
+      box-shadow: 0 14px 50px rgba(0,0,0,0.16);
+      transition: 0.22s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      background: var(--card-strong);
+    }
+
+    .icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(124,92,255,0.28), rgba(0,212,255,0.18));
+      border: 1px solid var(--border);
+      margin-bottom: 18px;
+      font-size: 22px;
+    }
+
+    .card h3 {
+      font-size: 22px;
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+
+    .card p {
+      color: var(--muted);
+    }
+
+    .timeline {
+      position: relative;
+      display: grid;
+      gap: 16px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 18px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .timeline-date {
+      color: var(--accent-2);
+      font-weight: 900;
+    }
+
+    .timeline-content h3 {
+      margin-bottom: 6px;
+      font-size: 20px;
+    }
+
+    .timeline-content p {
+      color: var(--muted);
+    }
+
+    .project {
+      min-height: 270px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project::before {
+      content: "";
+      position: absolute;
+      inset: auto -60px -80px auto;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: rgba(124,92,255,0.2);
+      filter: blur(10px);
+    }
+
+    .project-top,
+    .project-bottom {
+      position: relative;
+      z-index: 1;
+    }
+
+    .project-bottom {
+      margin-top: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .skill-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .skill {
+      padding: 18px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .skill-head {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-weight: 800;
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+
+    .quote {
+      padding: 34px;
+      border-radius: 32px;
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(135deg, rgba(124,92,255,0.18), rgba(0,212,255,0.08)),
+        rgba(255,255,255,0.06);
+      box-shadow: var(--shadow);
+    }
+
+    .quote p {
+      font-size: clamp(23px, 3vw, 36px);
+      line-height: 1.18;
+      letter-spacing: -0.04em;
+      margin-bottom: 18px;
+    }
+
+    .quote span {
+      color: var(--muted);
+    }
+
+    .contact-card {
+      text-align: center;
+      padding: 46px;
+      border-radius: 36px;
+      border: 1px solid var(--border);
+      background:
+        radial-gradient(circle at center top, rgba(0,212,255,0.22), transparent 45%),
+        rgba(255,255,255,0.07);
+      box-shadow: var(--shadow);
+    }
+
+    .contact-card h2 {
+      margin-bottom: 16px;
+    }
+
+    .contact-card p {
+      color: var(--muted);
+      max-width: 650px;
+      margin: 0 auto 26px;
+      font-size: 18px;
+    }
+
+    .contact-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    footer {
+      padding: 32px 0 46px;
+      color: var(--muted);
+      text-align: center;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid,
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .section-head {
+        align-items: start;
+        flex-direction: column;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .timeline-item {
+        grid-template-columns: 1fr;
+      }
+
+      .avatar {
+        height: 280px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .container {
+        width: min(100% - 22px, var(--max));
+      }
+
+      .hero {
+        padding-top: 58px;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .contact-card {
+        padding: 30px 18px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <h1>Мага-Трудяга</h1>
+  <div class="noise"></div>
+
+  <header>
+    <div class="container nav">
+      <a class="logo" href="#top" aria-label="На главную">
+        <span class="logo-mark">IY</span>
+        <span>И Я</span>
+      </a>
+      <nav class="nav-links" aria-label="Навигация">
+        <a href="#about">Обо мне</a>
+        <a href="#skills">Навыки</a>
+        <a href="#projects">Проекты</a>
+        <a href="#experience">Опыт</a>
+        <a href="#contact">Контакты</a>
+      </nav>
+      <a class="btn" href="#contact">Связаться</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow"><span class="pulse"></span> ML / AI / Analytics / Optimization</div>
+          <h1>Строю <span class="gradient-text">умные цифровые решения</span> на данных и коде.</h1>
+          <p class="hero-text">
+            Я занимаюсь машинным обучением, аналитикой, искусственным интеллектом и оптимизацией.
+            Люблю проекты, где нужно не просто написать код, а разобраться в системе, найти закономерности
+            и превратить хаос данных в понятное решение.
+          </p>
+          <div class="hero-actions">
+            <a class="btn primary" href="#projects">Смотреть проекты</a>
+            <a class="btn" href="#about">Узнать больше</a>
+          </div>
+          <div class="stats" aria-label="Краткая статистика">
+            <div class="stat">
+              <strong>AI</strong>
+              <span>модели, LLM, автоматизация</span>
+            </div>
+            <div class="stat">
+              <strong>Data</strong>
+              <span>аналитика, парсинг, визуализация</span>
+            </div>
+            <div class="stat">
+              <strong>Code</strong>
+              <span>Python, веб, интеграции</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="profile-card" aria-label="Профиль">
+          <div class="avatar">IY</div>
+          <div class="profile-info">
+            <h3>И Я</h3>
+            <p>Специалист по прикладной математике, данным и интеллектуальным системам.</p>
+            <div class="tags">
+              <span class="tag">Python</span>
+              <span class="tag">ML</span>
+              <span class="tag">AI</span>
+              <span class="tag">Analytics</span>
+              <span class="tag">Optimization</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="about">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Обо мне</div>
+            <h2>Сильная база в математике, коде и прикладных задачах.</h2>
+          </div>
+          <p class="section-description">
+            Мне интересны проекты на стыке технологий и реальных процессов: от анализа данных до внедрения ИИ-инструментов,
+            автоматизации и построения практичных цифровых продуктов.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card">
+            <div class="icon">🧠</div>
+            <h3>Машинное обучение</h3>
+            <p>Работаю с моделями, признаками, метриками качества, экспериментами и прикладными ML-пайплайнами.</p>
+          </article>
+          <article class="card">
+            <div class="icon">📊</div>
+            <h3>Аналитика</h3>
+            <p>Умею превращать сырые данные в понятные выводы, отчеты, гипотезы и решения для бизнеса или проекта.</p>
+          </article>
+          <article class="card">
+            <div class="icon">⚙️</div>
+            <h3>Автоматизация</h3>
+            <p>Пишу скрипты, парсеры, ботов и интеграции, которые экономят время и уменьшают ручную работу.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="skills">
+      <div class="container grid-2">
+        <div>
+          <div class="section-kicker">Навыки</div>
+          <h2>Технологический стек</h2>
+          <p class="section-description" style="margin-top: 16px;">
+            Ниже — примерный блок навыков. Замени проценты и названия на реальные, если хочешь сделать сайт максимально честным и резюмейным.
+          </p>
+        </div>
+        <div class="skill-list">
+          <div class="skill">
+            <div class="skill-head"><span>Python / Data Processing</span><span>90%</span></div>
+            <div class="bar"><span style="width: 90%"></span></div>
+          </div>
+          <div class="skill">
+            <div class="skill-head"><span>Machine Learning</span><span>82%</span></div>
+            <div class="bar"><span style="width: 82%"></span></div>
+          </div>
+          <div class="skill">
+            <div class="skill-head"><span>Web / Frontend</span><span>74%</span></div>
+            <div class="bar"><span style="width: 74%"></span></div>
+          </div>
+          <div class="skill">
+            <div class="skill-head"><span>Research / Writing</span><span>86%</span></div>
+            <div class="bar"><span style="width: 86%"></span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="projects">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Проекты</div>
+            <h2>Что можно показать на сайте</h2>
+          </div>
+          <p class="section-description">
+            Это заготовки. Замени названия, описания и ссылки на свои реальные проекты: GitHub, Telegram-боты, аналитические дашборды, исследования.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card project">
+            <div class="project-top">
+              <div class="icon">🤖</div>
+              <h3>AI Assistant Pipeline</h3>
+              <p>Пайплайн для обработки текста, генерации структуры, проверки качества и подготовки материалов.</p>
+            </div>
+            <div class="project-bottom">
+              <span class="tag">Python</span>
+              <span class="tag">LLM</span>
+              <span class="tag">Automation</span>
+            </div>
+          </article>
+
+          <article class="card project">
+            <div class="project-top">
+              <div class="icon">📈</div>
+              <h3>Data Analytics Dashboard</h3>
+              <p>Дашборд для анализа событий, метрик, динамики и поиска закономерностей в данных.</p>
+            </div>
+            <div class="project-bottom">
+              <span class="tag">Pandas</span>
+              <span class="tag">Charts</span>
+              <span class="tag">BI</span>
+            </div>
+          </article>
+
+          <article class="card project">
+            <div class="project-top">
+              <div class="icon">🛰️</div>
+              <h3>Parser & Telegram Bot</h3>
+              <p>Сервис мониторинга данных с уведомлениями, фильтрацией событий и сохранением истории.</p>
+            </div>
+            <div class="project-bottom">
+              <span class="tag">API</span>
+              <span class="tag">Telegram</span>
+              <span class="tag">SQLite</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="quote">
+          <p>«Хороший цифровой продукт — это когда сложная система становится понятной, управляемой и полезной».</p>
+          <span>Подход: меньше хаоса, больше структуры, данных и проверяемых решений.</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="experience">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <div class="section-kicker">Опыт и образование</div>
+            <h2>Путь в технологиях</h2>
+          </div>
+          <p class="section-description">
+            Здесь можно указать учебу, работу, стажировки, проекты, конференции и ключевые достижения.
+          </p>
+        </div>
+
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-date">2021–2025</div>
+            <div class="timeline-content">
+              <h3>Прикладная математика и информатика</h3>
+              <p>Фундаментальная подготовка в математике, программировании, анализе данных и моделировании.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-date">2024–2026</div>
+            <div class="timeline-content">
+              <h3>AI, ML и аналитические проекты</h3>
+              <p>Эксперименты с моделями, автоматизацией, парсингом, Telegram-ботами и прикладными интеллектуальными системами.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-date">Сейчас</div>
+            <div class="timeline-content">
+              <h3>Цифровые технологии и прикладные решения</h3>
+              <p>Интерес к проектам, где технологии помогают оптимизировать процессы, принимать решения и создавать новые продукты.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="container">
+        <div class="contact-card">
+          <div class="section-kicker">Контакты</div>
+          <h2>Готов обсудить проект, идею или сотрудничество.</h2>
+          <p>
+            Напиши мне, если нужен человек, который умеет разбираться в данных, строить решения, быстро учиться и доводить технические задачи до результата.
+          </p>
+          <div class="contact-links">
+            <a class="btn primary" href="mailto:your-email@example.com">Email</a>
+            <a class="btn" href="https://github.com/your-username" target="_blank" rel="noreferrer">GitHub</a>
+            <a class="btn" href="https://t.me/your_username" target="_blank" rel="noreferrer">Telegram</a>
+            <a class="btn" href="#top">Наверх</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      © <span id="year"></span> И Я. Личный сайт на GitHub Pages.
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
