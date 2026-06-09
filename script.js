@@ -458,35 +458,81 @@ function sendOrder(event) {
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${message}`, "_blank", "noopener");
 }
 
-function setActiveCategory(categoryId) {
+function scrollCategoryButtonIntoView(button, behavior = "auto") {
+  const nav = button?.parentElement;
+
+  if (!button || !nav) {
+    return;
+  }
+
+  const targetLeft = button.offsetLeft - (nav.clientWidth - button.offsetWidth) / 2;
+  nav.scrollTo({
+    left: Math.max(0, targetLeft),
+    behavior
+  });
+}
+
+function setActiveCategory(categoryId, behavior = "auto") {
   document.querySelectorAll(".category-button").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.category === categoryId);
   });
 
   const activeButton = document.querySelector(`.category-button[data-category="${categoryId}"]`);
-  activeButton?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+  scrollCategoryButtonIntoView(activeButton, behavior);
+}
+
+function scrollToMenuTarget(target) {
+  if (!target) {
+    return;
+  }
+
+  const navHeight = document.querySelector(".category-nav")?.offsetHeight || 0;
+  const top = target.getBoundingClientRect().top + window.scrollY - navHeight - 12;
+
+  window.scrollTo({
+    top: Math.max(0, top),
+    behavior: "smooth"
+  });
+}
+
+function getCurrentCategoryFromSections(sections) {
+  const navBottom = document.querySelector(".category-nav")?.getBoundingClientRect().bottom || 0;
+  const marker = navBottom + 24;
+  let currentCategory = "all";
+
+  sections.forEach((section) => {
+    if (section.getBoundingClientRect().top <= marker) {
+      currentCategory = section.dataset.category;
+    }
+  });
+
+  return currentCategory;
 }
 
 function setupCategoryObserver() {
-  const sections = document.querySelectorAll(".category-section");
+  const sections = Array.from(document.querySelectorAll(".category-section"));
+  let activeCategoryFrame = null;
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      const visibleEntries = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((first, second) => second.intersectionRatio - first.intersectionRatio);
-
-      if (visibleEntries.length > 0) {
-        setActiveCategory(visibleEntries[0].target.dataset.category);
-      }
-    },
-    {
-      rootMargin: "-35% 0px -50% 0px",
-      threshold: [0.15, 0.35, 0.6]
+  const updateActiveCategory = () => {
+    if (activeCategoryFrame) {
+      return;
     }
-  );
+
+    activeCategoryFrame = requestAnimationFrame(() => {
+      activeCategoryFrame = null;
+      setActiveCategory(getCurrentCategoryFromSections(sections));
+    });
+  };
+
+  const observer = new IntersectionObserver(updateActiveCategory, {
+    rootMargin: "0px 0px -70% 0px",
+    threshold: [0, 0.1]
+  });
 
   sections.forEach((section) => observer.observe(section));
+  window.addEventListener("scroll", updateActiveCategory, { passive: true });
+  window.addEventListener("resize", updateActiveCategory);
+  updateActiveCategory();
 }
 
 categoryNav.addEventListener("click", (event) => {
@@ -496,10 +542,9 @@ categoryNav.addEventListener("click", (event) => {
     return;
   }
 
-  document.querySelector(`#${button.dataset.target}`)?.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
+  setActiveCategory(button.dataset.category, "smooth");
+
+  scrollToMenuTarget(document.querySelector(`#${button.dataset.target}`));
 });
 
 catalog.addEventListener("click", (event) => {
