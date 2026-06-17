@@ -1,6 +1,11 @@
 const WHATSAPP_NUMBER = "79280893233";
 const CART_STORAGE_KEY = "aminka-cart-v3";
 const CATALOG_CSV_URL = (window.CATALOG_CSV_URL || "").trim();
+const CATALOG_STYLE = new URLSearchParams(window.location.search).get("catalog");
+
+if (CATALOG_STYLE === "glass") {
+  document.documentElement.classList.add("catalog-glass");
+}
 
 const CATEGORY_ORDER = [
   { id: "all", name: "Все" },
@@ -65,9 +70,6 @@ const cartTotal = document.querySelector("#cartTotal");
 const priceNote = document.querySelector("#priceNote");
 const orderForm = document.querySelector("#orderForm");
 const customerName = document.querySelector("#customerName");
-const customerPhone = document.querySelector("#customerPhone");
-const deliveryType = document.querySelector("#deliveryType");
-const deliveryDate = document.querySelector("#deliveryDate");
 const deliveryTime = document.querySelector("#deliveryTime");
 const customerComment = document.querySelector("#customerComment");
 const commentLabel = document.querySelector("#commentLabel");
@@ -523,15 +525,12 @@ function closeCartDrawer() {
   cartOverlay.setAttribute("aria-hidden", "true");
 }
 
-function setupDate() {
-  const today = new Date();
-  const value = today.toISOString().slice(0, 10);
-  deliveryDate.value = value;
-  deliveryDate.min = value;
-}
-
 function selectedPaymentType() {
   return new FormData(orderForm).get("paymentType") || "Картой";
+}
+
+function selectedDeliveryType() {
+  return new FormData(orderForm).get("deliveryType") || "Доставка";
 }
 
 function updatePaymentFields() {
@@ -544,7 +543,7 @@ function updatePaymentFields() {
 }
 
 function updateCommentLabel() {
-  commentLabel.textContent = deliveryType.value === "Доставка"
+  commentLabel.textContent = selectedDeliveryType() === "Доставка"
     ? "Адрес доставки или комментарий"
     : "Комментарий к самовывозу";
 }
@@ -554,11 +553,7 @@ function validateOrder() {
     return "Добавьте хотя бы одну позицию.";
   }
 
-  if (!normalize(customerPhone.value)) {
-    return "Укажите телефон.";
-  }
-
-  if (deliveryType.value === "Доставка" && !normalize(customerComment.value)) {
+  if (selectedDeliveryType() === "Доставка" && !normalize(customerComment.value)) {
     return "Укажите адрес доставки.";
   }
 
@@ -585,13 +580,11 @@ function buildOrderMessage() {
     hasUnknownPrices() ? "Есть позиции, цену которых нужно уточнить." : "",
     "",
     `Имя: ${normalize(customerName.value) || "не указано"}`,
-    `Телефон: ${normalize(customerPhone.value)}`,
-    `Получение: ${deliveryType.value}`,
-    `Дата: ${deliveryDate.value || "не указана"}`,
+    `Получение: ${selectedDeliveryType()}`,
     `Время: ${deliveryTime.value}`,
     `Оплата: ${payment}${changeText}`,
     `Адрес/комментарий: ${normalize(customerComment.value) || "нет"}`,
-    deliveryType.value === "Доставка" ? "Доставка оплачивается по тарифам такси." : ""
+    selectedDeliveryType() === "Доставка" ? "Доставка оплачивается по тарифам такси." : ""
   ].filter(Boolean).join("\n");
 }
 
@@ -680,7 +673,6 @@ async function init() {
   await loadCatalog();
   cart = loadCart();
   saveCart();
-  setupDate();
   renderCategories();
   renderCatalog();
   renderCart();

@@ -108,25 +108,17 @@
             <input id="customerName" name="customerName" type="text" autocomplete="name" placeholder="Как к вам обращаться">
           </label>
 
-          <label>
-            <span>Телефон</span>
-            <input id="customerPhone" name="customerPhone" type="tel" autocomplete="tel" placeholder="+7 900 000-00-00">
-          </label>
-
-          <div class="form-grid">
+          <fieldset class="choice-group delivery-choice">
+            <legend>Получение</legend>
             <label>
-              <span>Получение</span>
-              <select id="deliveryType" name="deliveryType">
-                <option value="Доставка">Доставка</option>
-                <option value="Самовывоз">Самовывоз</option>
-              </select>
+              <input type="radio" name="deliveryType" value="Доставка" checked>
+              <span>Доставка</span>
             </label>
-
             <label>
-              <span>Дата</span>
-              <input id="deliveryDate" name="deliveryDate" type="date">
+              <input type="radio" name="deliveryType" value="Самовывоз">
+              <span>Самовывоз</span>
             </label>
-          </div>
+          </fieldset>
 
           <label>
             <span>Время</span>
