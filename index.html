@@ -1,107 +1,85 @@
 <!doctype html>
 <html lang="ru">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Домашняя еда от Амины</title>
-    <meta
-      name="description"
-      content="Манты, пельмени, вареники, чебуреки, котлеты, торты и домашние полуфабрикаты на заказ"
-    >
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Домашняя еда от Амины">
-    <meta
-      property="og:description"
-      content="Домашние блюда и полуфабрикаты на заказ. Доставка и самовывоз."
-    >
-    <meta property="og:image" content="images/Медовик.jpg">
-    <meta property="og:locale" content="ru_RU">
-    <meta name="theme-color" content="#8f1d2c">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Домашняя еда от Амины: блюда, полуфабрикаты, доставка и самовывоз.">
+    <title>AMINKA.PRO - домашняя еда от Амины</title>
+    <link rel="preload" href="images/hero.webp" as="image">
     <link rel="stylesheet" href="style.css">
+    <script src="catalog-config.js" defer></script>
+    <script src="script.js" defer></script>
   </head>
   <body>
-    <header class="hero" id="top">
-      <div class="hero__inner">
-        <nav class="topbar" aria-label="Основная навигация">
-          <a class="brand" href="#top" aria-label="Домашняя еда от Амины">
-            <span class="brand__mark">А</span>
-            <span>Домашняя еда от Амины</span>
-          </a>
-          <a class="topbar__phone" href="tel:+79280893233">8 928 089-32-33</a>
-        </nav>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="AMINKA.PRO">
+        <span class="brand__mark">A</span>
+        <span>AMINKA.PRO</span>
+      </a>
+      <nav class="topnav" aria-label="Основные разделы">
+        <a href="#menu">Меню</a>
+        <a href="#about">О нас</a>
+        <a href="#contacts">Контакты</a>
+      </nav>
+      <a class="topbar__phone" href="tel:+79280893233">+7 928 089-32-33</a>
+    </header>
 
-        <div class="hero__content">
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <img class="hero__image" src="images/hero.webp" alt="Домашний медовик" width="1600" height="1067" fetchpriority="high">
+        <div class="hero__overlay"></div>
+        <div class="hero__inner">
           <div class="hero__copy">
             <p class="eyebrow">Доставка и самовывоз</p>
-            <h1>Домашняя еда от Амины</h1>
-            <p class="hero__lead">Домашние блюда и полуфабрикаты на заказ</p>
+            <h1 id="hero-title">Домашняя еда от Амины</h1>
+            <p>Домашние блюда, полуфабрикаты и заказы для семейных праздников.</p>
             <div class="hero__actions">
               <a class="button button--primary" href="#menu">Смотреть меню</a>
               <a class="button button--ghost" href="https://wa.me/79280893233" target="_blank" rel="noopener">WhatsApp</a>
             </div>
+            <a class="hero__address-mobile" href="https://www.google.com/maps/search/?api=1&query=%D0%A5%D0%B0%D0%BC%D0%B8%D0%B4%D0%B0%20%D0%90%D1%85%D0%BC%D0%B0%D0%B4%D0%BE%D0%B2%D0%B0%2041%2C%20%D0%A2%D1%80%D0%B0%D0%BC%D0%BF%D0%B0%D1%80%D0%BA" target="_blank" rel="noopener">Хамида Ахмадова 41, Трампарк</a>
           </div>
 
-          <div class="hero__panel" aria-label="Контакты и условия заказа">
+          <div class="hero-card" aria-label="Контакты и получение">
             <div>
-              <span class="hero__panel-label">Телефон</span>
-              <a href="tel:+79280893233">8 928 089-32-33</a>
+              <span>Телефон</span>
+              <a href="tel:+79280893233">+7 928 089-32-33</a>
             </div>
             <div>
-              <span class="hero__panel-label">Адрес</span>
-              <span>Хамида Ахмадова 41, Трампарк</span>
+              <span>Адрес</span>
+              <a href="https://www.google.com/maps/search/?api=1&query=%D0%A5%D0%B0%D0%BC%D0%B8%D0%B4%D0%B0%20%D0%90%D1%85%D0%BC%D0%B0%D0%B4%D0%BE%D0%B2%D0%B0%2041%2C%20%D0%A2%D1%80%D0%B0%D0%BC%D0%BF%D0%B0%D1%80%D0%BA" target="_blank" rel="noopener">Хамида Ахмадова 41, Трампарк</a>
             </div>
             <div>
-              <span class="hero__panel-label">Получение</span>
-              <span>Доставка или самовывоз</span>
+              <span>Получение</span>
+              <strong>Доставка или самовывоз</strong>
             </div>
           </div>
         </div>
-      </div>
-    </header>
+      </section>
 
-    <main>
-      <section class="menu" id="menu" aria-labelledby="menu-title">
-        <div class="section-heading">
-          <p class="eyebrow">Каталог</p>
-          <h2 id="menu-title">Меню на заказ</h2>
-          <p>Выберите блюда, добавьте их в корзину и отправьте заказ в WhatsApp.</p>
+      <section class="menu-section" id="menu" aria-labelledby="menu-title">
+        <div class="section-head">
+          <h2 id="menu-title">Меню</h2>
         </div>
-
-        <nav class="category-nav" aria-label="Категории меню">
-          <div class="category-nav__inner" id="categoryNav"></div>
-        </nav>
-
+        <div class="category-tabs" id="categoryTabs" aria-label="Категории меню"></div>
         <div class="catalog" id="catalog" aria-live="polite"></div>
       </section>
 
-      <section class="info-band" aria-label="Информация о заказах">
-        <div class="info-band__item">
-          <span>01</span>
-          <strong>Домашнее приготовление</strong>
-          <p>Блюда готовятся небольшими партиями, поэтому вкус остается живым и домашним.</p>
+      <section class="about-section" id="about" aria-labelledby="about-title">
+        <div>
+          <p class="eyebrow">О нас</p>
+          <h2 id="about-title">Большая домашняя кухня</h2>
         </div>
-        <div class="info-band__item">
-          <span>02</span>
-          <strong>Удобное получение</strong>
-          <p>Можно оформить доставку или забрать заказ самостоятельно по адресу.</p>
-        </div>
-        <div class="info-band__item">
-          <span>03</span>
-          <strong>Заказ в WhatsApp</strong>
-          <p>Корзина сама соберет понятное сообщение со списком блюд и суммой.</p>
-        </div>
+        <p>
+          Готовим дома: блюда на каждый день, полуфабрикаты, торты и заказы для свадеб,
+          семейных ужинов и мероприятий. Доставка оплачивается по тарифам такси.
+        </p>
       </section>
     </main>
 
     <button class="cart-fab" type="button" id="cartButton" aria-label="Открыть корзину">
-      <span class="cart-fab__icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" focusable="false">
-          <path d="M6.2 6h15l-1.6 8.2a2 2 0 0 1-2 1.6H9.1a2 2 0 0 1-2-1.7L5.5 3.8H2.8"></path>
-          <circle cx="9.7" cy="20" r="1.4"></circle>
-          <circle cx="17.4" cy="20" r="1.4"></circle>
-        </svg>
-      </span>
-      <span>Корзина</span>
+      <span class="cart-fab__icon" aria-hidden="true">+</span>
+      <span>Заказ</span>
       <strong id="cartCount">0</strong>
     </button>
 
@@ -116,51 +94,90 @@
       </div>
 
       <div class="cart-drawer__body">
+        <p class="cart-empty" id="cartEmpty">Добавьте блюдо через кнопку +.</p>
         <div class="cart-items" id="cartItems"></div>
-        <p class="cart-empty" id="cartEmpty">Корзина пуста</p>
-
         <div class="cart-total">
           <span>Итого</span>
           <strong id="cartTotal">0 ₽</strong>
         </div>
+        <p class="price-note" id="priceNote" hidden>Есть позиции, цену которых нужно уточнить.</p>
 
         <form class="order-form" id="orderForm">
           <label>
-            <span>Имя клиента</span>
-            <input type="text" id="customerName" name="customerName" autocomplete="name" placeholder="Например, Амина">
+            <span>Имя</span>
+            <input id="customerName" name="customerName" type="text" autocomplete="name" placeholder="Как к вам обращаться">
           </label>
 
-          <fieldset>
-            <legend>Способ получения</legend>
-            <label class="radio-card">
-              <input type="radio" name="deliveryType" value="Доставка" checked>
-              <span>Доставка</span>
+          <label>
+            <span>Телефон</span>
+            <input id="customerPhone" name="customerPhone" type="tel" autocomplete="tel" placeholder="+7 900 000-00-00">
+          </label>
+
+          <div class="form-grid">
+            <label>
+              <span>Получение</span>
+              <select id="deliveryType" name="deliveryType">
+                <option value="Доставка">Доставка</option>
+                <option value="Самовывоз">Самовывоз</option>
+              </select>
             </label>
-            <label class="radio-card">
-              <input type="radio" name="deliveryType" value="Самовывоз">
-              <span>Самовывоз</span>
+
+            <label>
+              <span>Дата</span>
+              <input id="deliveryDate" name="deliveryDate" type="date">
+            </label>
+          </div>
+
+          <label>
+            <span>Время</span>
+            <select id="deliveryTime" name="deliveryTime">
+              <option value="Как можно скорее">Как можно скорее</option>
+              <option value="10:00-12:00">10:00-12:00</option>
+              <option value="12:00-14:00">12:00-14:00</option>
+              <option value="14:00-16:00">14:00-16:00</option>
+              <option value="16:00-18:00">16:00-18:00</option>
+              <option value="18:00-20:00">18:00-20:00</option>
+              <option value="Другое время">Другое время</option>
+            </select>
+          </label>
+
+          <fieldset class="payment-group">
+            <legend>Оплата</legend>
+            <label>
+              <input type="radio" name="paymentType" value="Картой" checked>
+              <span>Картой</span>
+            </label>
+            <label>
+              <input type="radio" name="paymentType" value="Наличными">
+              <span>Наличными</span>
             </label>
           </fieldset>
 
+          <label class="cash-change" id="cashChangeWrap" hidden>
+            <span>Сдача</span>
+            <input id="cashChange" name="cashChange" type="text" inputmode="numeric" placeholder="Например: сдача с 5000">
+          </label>
+
           <label>
-            <span id="commentLabel">Адрес доставки или комментарий</span>
-            <textarea id="customerComment" name="customerComment" rows="3" placeholder="Улица, дом, квартира или пожелания к заказу"></textarea>
+            <span id="commentLabel">Адрес или комментарий</span>
+            <textarea id="customerComment" name="customerComment" rows="3" placeholder="Адрес, подъезд, этаж или пожелания"></textarea>
           </label>
 
           <p class="form-message" id="formMessage" role="status" aria-live="polite"></p>
-          <button class="button button--primary button--full" type="submit">Отправить заказ в WhatsApp</button>
+          <button class="button button--primary button--full" type="submit">Отправить в WhatsApp</button>
         </form>
       </div>
     </aside>
 
-    <footer class="footer">
+    <footer class="footer" id="contacts">
       <div>
-        <strong>Домашняя еда от Амины</strong>
-        <p>Хамида Ахмадова 41, Трампарк</p>
+        <strong>AMINKA.PRO</strong>
+        <p>Домашняя еда от Амины</p>
       </div>
-      <a href="tel:+79280893233">8 928 089-32-33</a>
+      <div>
+        <a href="tel:+79280893233">+7 928 089-32-33</a>
+        <a href="https://www.google.com/maps/search/?api=1&query=%D0%A5%D0%B0%D0%BC%D0%B8%D0%B4%D0%B0%20%D0%90%D1%85%D0%BC%D0%B0%D0%B4%D0%BE%D0%B2%D0%B0%2041%2C%20%D0%A2%D1%80%D0%B0%D0%BC%D0%BF%D0%B0%D1%80%D0%BA" target="_blank" rel="noopener">Хамида Ахмадова 41, Трампарк</a>
+      </div>
     </footer>
-
-    <script src="script.js"></script>
   </body>
 </html>
