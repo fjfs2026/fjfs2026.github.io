@@ -1,5 +1,6 @@
 const WHATSAPP_NUMBER = "79280893233";
 const CART_STORAGE_KEY = "aminka-cart-v3";
+const CATALOG_CACHE_KEY = "aminka-catalog-cache-v1";
 const PUBLIC_CATALOG_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvME1oYerxh0AxmPC03dYrQOXAXljckYbyT4eHninXeWrubMAYNetpenKLuUYcszXLc_jeQFuI8HuT/pub?gid=0&single=true&output=csv";
 const CATALOG_CSV_URL = (window.CATALOG_CSV_URL || PUBLIC_CATALOG_CSV_URL).trim();
 const CATALOG_STYLE = new URLSearchParams(window.location.search).get("catalog") || "glass";
@@ -352,6 +353,23 @@ async function loadSheetRows() {
   return parseCsv(await response.text());
 }
 
+function loadCachedSheetRows() {
+  try {
+    const rows = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY) || "[]");
+    return Array.isArray(rows) ? rows : [];
+  } catch {
+    return [];
+  }
+}
+
+function cacheSheetRows(rows) {
+  try {
+    localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify(rows));
+  } catch {
+    // The built-in catalog still makes the menu available when storage is blocked.
+  }
+}
+
 function rowValue(row, names) {
   const key = Object.keys(row).find((item) => names.includes(normalizeKey(item)));
   return key ? row[key] : "";
@@ -401,18 +419,22 @@ function productsFromRows(rows) {
 }
 
 async function loadCatalog() {
+  const previousCatalog = JSON.stringify(products);
+
   try {
     const rows = await loadSheetRows();
     const sheetProducts = productsFromRows(rows);
 
     if (sheetProducts.length) {
       products = sheetProducts;
+      cacheSheetRows(rows);
     }
   } catch (error) {
     console.warn(error);
   }
 
   categories = buildCategories(products);
+  return previousCatalog !== JSON.stringify(products);
 }
 
 function buildCategories(items) {
@@ -946,8 +968,8 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-async function init() {
-  await loadCatalog();
+function renderApp() {
+  categories = buildCategories(products);
   cart = loadCart();
   saveCart();
   renderCategories();
@@ -956,6 +978,25 @@ async function init() {
   updatePaymentFields();
   updateCommentLabel();
   setActiveCategory("all");
+}
+
+async function refreshCatalog() {
+  const catalogChanged = await loadCatalog();
+  if (!catalogChanged) {
+    return;
+  }
+
+  renderApp();
+}
+
+function init() {
+  const cachedProducts = productsFromRows(loadCachedSheetRows());
+  if (cachedProducts.length) {
+    products = cachedProducts;
+  }
+
+  renderApp();
+  refreshCatalog();
 }
 
 init();
