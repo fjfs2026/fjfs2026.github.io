@@ -694,6 +694,16 @@ button {
   backdrop-filter: none;
 }
 
+.product-card__price-slot {
+  display: flex;
+  flex: 0 1 auto;
+}
+
+.product-card__control {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
 .product-card__variant-wrap {
   display: grid;
   width: min(300px, 82%);
@@ -1344,8 +1354,8 @@ button {
 @media (max-width: 520px) {
   .topbar {
     grid-template-areas:
-      "brand phone"
-      "nav nav";
+      "brand nav"
+      ". phone";
     grid-template-columns: auto minmax(0, 1fr);
     gap: 10px 12px;
     padding: 16px 18px;
@@ -1371,8 +1381,8 @@ button {
     grid-area: nav;
     align-self: start;
     justify-content: flex-end;
-    gap: 14px;
-    font-size: 10px;
+    gap: 10px;
+    font-size: 9px;
     letter-spacing: 0.04em;
     white-space: nowrap;
   }

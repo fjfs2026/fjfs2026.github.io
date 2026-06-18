@@ -33,6 +33,7 @@ const CATEGORY_HEADERS = ["категория", "раздел", "category", "sec
 const STATUS_HEADERS = ["статус", "наличие", "status", "availability"];
 const DESCRIPTION_HEADERS = ["описание", "состав", "description"];
 const PRICE_HEADERS = ["цена", "price"];
+const HALF_PRICE_HEADERS = ["цена 1/2", "цена половины", "половина", "1/2", "half price"];
 const DISCOUNT_HEADERS = ["цена со скидкой", "скидка", "акционная цена", "цена скидка", "discount price", "sale price"];
 const CATALOG_HEADER_KEYS = new Set([
   ...NAME_HEADERS,
@@ -40,21 +41,22 @@ const CATALOG_HEADER_KEYS = new Set([
   ...STATUS_HEADERS,
   ...DESCRIPTION_HEADERS,
   ...PRICE_HEADERS,
+  ...HALF_PRICE_HEADERS,
   ...DISCOUNT_HEADERS
 ]);
 
 const CAKE_VARIANTS = {
   medovik: [
-    { id: "whole", name: "Целый", price: 1500 },
-    { id: "half", name: "1/2", price: 750 }
+    { id: "half", name: "1/2", price: 800 },
+    { id: "whole", name: "Целый", price: 1500 }
   ],
   "nut-cake": [
-    { id: "whole", name: "Целый", price: 1300 },
-    { id: "half", name: "1/2", price: 650 }
+    { id: "half", name: "1/2", price: 700 },
+    { id: "whole", name: "Целый", price: 1300 }
   ],
   "liver-cake": [
-    { id: "whole", name: "Целый", price: 1600 },
-    { id: "half", name: "1/2", price: 800 }
+    { id: "half", name: "1/2", price: 850 },
+    { id: "whole", name: "Целый", price: 1600 }
   ]
 };
 
@@ -208,6 +210,23 @@ function priceFromCells(priceCell, discountCell, base = {}) {
   };
 }
 
+function variantsFromPrices(baseVariants, wholePrice, halfPriceCell) {
+  if (!baseVariants?.length && !normalize(halfPriceCell)) {
+    return [];
+  }
+
+  const existingWhole = baseVariants?.find((variant) => variant.id === "whole");
+  const existingHalf = baseVariants?.find((variant) => variant.id === "half");
+  const halfPrice = normalize(halfPriceCell)
+    ? parsePriceNumber(halfPriceCell)
+    : (existingHalf?.price || 0);
+
+  return [
+    { id: "half", name: "1/2", price: halfPrice },
+    { id: "whole", name: "Целый", price: wholePrice || existingWhole?.price || 0 }
+  ].filter((variant) => variant.price > 0);
+}
+
 function statusFromText(value) {
   const text = normalizeKey(value);
 
@@ -352,6 +371,7 @@ function productsFromRows(rows) {
     const statusText = rowValue(row, STATUS_HEADERS);
     const descriptionText = rowValue(row, DESCRIPTION_HEADERS);
     const priceText = rowValue(row, PRICE_HEADERS);
+    const halfPriceText = rowValue(row, HALF_PRICE_HEADERS);
     const discountText = rowValue(row, DISCOUNT_HEADERS);
     const priceData = priceFromCells(priceText, discountText, base || {});
     const description = descriptionFromText(descriptionText, base?.description || "");
@@ -362,7 +382,8 @@ function productsFromRows(rows) {
         ...priceData,
         description,
         category: categoryIdFromText(categoryText, base.category),
-        status: statusFromText(statusText || statusLabel(base.status))
+        status: statusFromText(statusText || statusLabel(base.status)),
+        variants: variantsFromPrices(base.variants, priceData.price, halfPriceText)
       };
     }
 
@@ -373,7 +394,8 @@ function productsFromRows(rows) {
       description,
       category: categoryIdFromText(categoryText, "extra"),
       status: statusFromText(statusText),
-      image: ""
+      image: "",
+      variants: variantsFromPrices([], priceData.price, halfPriceText)
     };
   }).filter(Boolean);
 }
@@ -558,10 +580,30 @@ function renderCatalog() {
   }).join("");
 }
 
+function renderProductControl(item, variant = selectedVariant(item)) {
+  const displayItem = variant ? purchasableItem(item.id, variant.id) : item;
+  const quantity = cartQuantity(item.id, variant?.id || "");
+
+  if (item.status === "out") {
+    return `<button class="round-action" type="button" disabled aria-label="Нет в наличии">×</button>`;
+  }
+
+  if (quantity) {
+    return `
+      <div class="quantity-control" aria-label="Количество">
+        <button type="button" data-action="decrease" data-cart-id="${escapeHtml(displayItem.id)}" data-product-id="${escapeHtml(item.id)}" aria-label="Уменьшить">−</button>
+        <span>${quantity}</span>
+        <button type="button" data-action="add" data-product-id="${escapeHtml(item.id)}" data-variant-id="${escapeHtml(variant?.id || "")}" aria-label="Увеличить">+</button>
+      </div>
+    `;
+  }
+
+  return `<button class="round-action" type="button" data-action="add" data-product-id="${escapeHtml(item.id)}" data-variant-id="${escapeHtml(variant?.id || "")}" aria-label="Добавить">+</button>`;
+}
+
 function renderProductCard(item) {
   const variant = selectedVariant(item);
   const displayItem = variant ? purchasableItem(item.id, variant.id) : item;
-  const quantity = cartQuantity(item.id, variant?.id || "");
   const unavailable = item.status === "out";
   const description = normalize(item.description)
     ? `<p class="product-card__description">${escapeHtml(item.description)}</p>`
@@ -591,17 +633,6 @@ function renderProductCard(item) {
   const media = item.image
     ? `<img class="product-card__image" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy" width="720" height="720" onerror="showImagePlaceholder(this)">`
     : `<div class="product-card__placeholder">Фото добавим позже</div>`;
-  const control = unavailable
-    ? `<button class="round-action" type="button" disabled aria-label="Нет в наличии">×</button>`
-    : quantity
-      ? `
-        <div class="quantity-control" aria-label="Количество">
-          <button type="button" data-action="decrease" data-cart-id="${escapeHtml(displayItem.id)}" data-product-id="${escapeHtml(item.id)}" aria-label="Уменьшить">−</button>
-          <span>${quantity}</span>
-          <button type="button" data-action="add" data-product-id="${escapeHtml(item.id)}" data-variant-id="${escapeHtml(variant?.id || "")}" aria-label="Увеличить">+</button>
-        </div>
-      `
-      : `<button class="round-action" type="button" data-action="add" data-product-id="${escapeHtml(item.id)}" data-variant-id="${escapeHtml(variant?.id || "")}" aria-label="Добавить">+</button>`;
 
   return `
     <article class="product-card ${unavailable ? "is-unavailable" : ""}" data-product-id="${escapeHtml(item.id)}">
@@ -617,9 +648,9 @@ function renderProductCard(item) {
         <h4>${escapeHtml(item.name)}</h4>
         ${variantControl}
         <div class="product-card__bottom">
-          ${renderPrice(displayItem)}
+          <span class="product-card__price-slot">${renderPrice(displayItem)}</span>
           ${description}
-          ${control}
+          <span class="product-card__control">${renderProductControl(item, variant)}</span>
         </div>
       </div>
     </article>
@@ -641,10 +672,30 @@ function updateProductCard(productId) {
     return;
   }
 
+  const variant = selectedVariant(item);
+  const displayItem = variant ? purchasableItem(item.id, variant.id) : item;
+
   document.querySelectorAll(".product-card").forEach((card) => {
-    if (card.dataset.productId === productId) {
-      card.outerHTML = renderProductCard(item);
+    if (card.dataset.productId !== productId) {
+      return;
     }
+
+    const priceSlot = card.querySelector(".product-card__price-slot");
+    const controlSlot = card.querySelector(".product-card__control");
+
+    if (priceSlot) {
+      priceSlot.innerHTML = renderPrice(displayItem);
+    }
+
+    if (controlSlot) {
+      controlSlot.innerHTML = renderProductControl(item, variant);
+    }
+
+    card.querySelectorAll(".product-card__variant-button").forEach((button) => {
+      const active = button.dataset.variantId === variant?.id;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
   });
 }
 
@@ -654,7 +705,7 @@ function addToCart(productId, variantId = "") {
     return;
   }
 
-  const existing = cart.find((cartItem) => cartItem.id === productId);
+  const existing = cart.find((cartItem) => cartItem.id === item.id);
   if (existing) {
     existing.quantity += 1;
   } else {
