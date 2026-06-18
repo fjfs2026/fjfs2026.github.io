@@ -1,6 +1,7 @@
 const WHATSAPP_NUMBER = "79280893233";
 const CART_STORAGE_KEY = "aminka-cart-v3";
 const CATALOG_CACHE_KEY = "aminka-catalog-cache-v1";
+const CATALOG_REFRESH_INTERVAL = 10 * 60 * 1000;
 const PUBLIC_CATALOG_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvME1oYerxh0AxmPC03dYrQOXAXljckYbyT4eHninXeWrubMAYNetpenKLuUYcszXLc_jeQFuI8HuT/pub?gid=0&single=true&output=csv";
 const CATALOG_CSV_URL = (window.CATALOG_CSV_URL || PUBLIC_CATALOG_CSV_URL).trim();
 const CATALOG_STYLE = new URLSearchParams(window.location.search).get("catalog") || "glass";
@@ -115,6 +116,8 @@ const cashChange = document.querySelector("#cashChange");
 let products = BASE_PRODUCTS.map((item) => ({ ...item }));
 let categories = buildCategories(products);
 let cart = [];
+let lastCatalogSyncAt = 0;
+let catalogRefreshTimer = 0;
 const selectedVariants = new Map();
 
 function product(id, name, price, priceText, category, status, image, description = "", oldPrice = 0, oldPriceText = "") {
@@ -353,20 +356,32 @@ async function loadSheetRows() {
   return parseCsv(await response.text());
 }
 
-function loadCachedSheetRows() {
+function loadCachedSheetData() {
   try {
-    const rows = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY) || "[]");
-    return Array.isArray(rows) ? rows : [];
+    const saved = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY) || "null");
+
+    if (Array.isArray(saved)) {
+      return { rows: saved, updatedAt: 0 };
+    }
+
+    if (saved && Array.isArray(saved.rows)) {
+      return {
+        rows: saved.rows,
+        updatedAt: Number(saved.updatedAt) || 0
+      };
+    }
   } catch {
-    return [];
+    // The embedded Google Sheets snapshot is used when storage is unavailable.
   }
+
+  return { rows: [], updatedAt: 0 };
 }
 
-function cacheSheetRows(rows) {
+function cacheSheetRows(rows, updatedAt) {
   try {
-    localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify(rows));
+    localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({ rows, updatedAt }));
   } catch {
-    // The built-in catalog still makes the menu available when storage is blocked.
+    // The embedded Google Sheets snapshot still keeps the menu available.
   }
 }
 
@@ -424,10 +439,11 @@ async function loadCatalog() {
   try {
     const rows = await loadSheetRows();
     const sheetProducts = productsFromRows(rows);
+    lastCatalogSyncAt = Date.now();
 
     if (sheetProducts.length) {
       products = sheetProducts;
-      cacheSheetRows(rows);
+      cacheSheetRows(rows, lastCatalogSyncAt);
     }
   } catch (error) {
     console.warn(error);
@@ -982,21 +998,41 @@ function renderApp() {
 
 async function refreshCatalog() {
   const catalogChanged = await loadCatalog();
-  if (!catalogChanged) {
-    return;
+  if (catalogChanged) {
+    renderApp();
   }
 
-  renderApp();
+  scheduleCatalogRefresh();
+}
+
+function scheduleCatalogRefresh() {
+  window.clearTimeout(catalogRefreshTimer);
+  const elapsed = Date.now() - lastCatalogSyncAt;
+  const delay = Math.max(0, CATALOG_REFRESH_INTERVAL - elapsed);
+  catalogRefreshTimer = window.setTimeout(refreshCatalog, delay);
 }
 
 function init() {
-  const cachedProducts = productsFromRows(loadCachedSheetRows());
-  if (cachedProducts.length) {
-    products = cachedProducts;
+  const cached = loadCachedSheetData();
+  const snapshotRows = parseCsv(window.CATALOG_SNAPSHOT_CSV || "");
+  const snapshotUpdatedAt = Number(window.CATALOG_SNAPSHOT_UPDATED_AT) || 0;
+  const useCachedRows = cached.rows.length
+    && (!snapshotRows.length || cached.updatedAt >= snapshotUpdatedAt);
+  const initialRows = useCachedRows ? cached.rows : snapshotRows;
+  const rememberedProducts = productsFromRows(initialRows);
+
+  if (rememberedProducts.length) {
+    products = rememberedProducts;
+  }
+
+  lastCatalogSyncAt = useCachedRows ? cached.updatedAt : snapshotUpdatedAt;
+
+  if (!useCachedRows && snapshotRows.length) {
+    cacheSheetRows(snapshotRows, snapshotUpdatedAt);
   }
 
   renderApp();
-  refreshCatalog();
+  scheduleCatalogRefresh();
 }
 
 init();
