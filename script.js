@@ -118,6 +118,8 @@ let categories = buildCategories(products);
 let cart = [];
 let lastCatalogSyncAt = 0;
 let catalogRefreshTimer = 0;
+let activeCategoryId = "";
+let categoryScrollFrame = 0;
 const selectedVariants = new Map();
 
 function product(id, name, price, priceText, category, status, image, description = "", oldPrice = 0, oldPriceText = "") {
@@ -911,10 +913,67 @@ function sendOrder(event) {
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(buildOrderMessage())}`, "_blank", "noopener");
 }
 
-function setActiveCategory(categoryId) {
+function revealCategoryTab(button, behavior = "smooth") {
+  if (!button) {
+    return;
+  }
+
+  const targetLeft = button.offsetLeft - ((categoryTabs.clientWidth - button.offsetWidth) / 2);
+  const maxLeft = Math.max(0, categoryTabs.scrollWidth - categoryTabs.clientWidth);
+  const left = Math.max(0, Math.min(maxLeft, targetLeft));
+
+  if (Math.abs(categoryTabs.scrollLeft - left) > 4) {
+    categoryTabs.scrollTo({ left, behavior });
+  }
+}
+
+function setActiveCategory(categoryId, behavior = "smooth") {
+  let activeButton = null;
+
   document.querySelectorAll(".category-tab").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.category === categoryId);
+    const isActive = button.dataset.category === categoryId;
+    button.classList.toggle("is-active", isActive);
+    if (isActive) {
+      activeButton = button;
+    }
   });
+
+  if (activeCategoryId !== categoryId) {
+    activeCategoryId = categoryId;
+    revealCategoryTab(activeButton, behavior);
+  }
+}
+
+function syncActiveCategory() {
+  categoryScrollFrame = 0;
+  const sections = [...catalog.querySelectorAll(".category-section")];
+
+  if (!sections.length) {
+    return;
+  }
+
+  const tabsRect = categoryTabs.getBoundingClientRect();
+  if (tabsRect.top > 1) {
+    setActiveCategory("all");
+    return;
+  }
+
+  const marker = tabsRect.bottom + 18;
+  let currentCategory = "all";
+
+  sections.forEach((section) => {
+    if (section.getBoundingClientRect().top <= marker) {
+      currentCategory = section.dataset.category;
+    }
+  });
+
+  setActiveCategory(currentCategory);
+}
+
+function requestCategorySync() {
+  if (!categoryScrollFrame) {
+    categoryScrollFrame = window.requestAnimationFrame(syncActiveCategory);
+  }
 }
 
 categoryTabs.addEventListener("click", (event) => {
@@ -929,6 +988,9 @@ categoryTabs.addEventListener("click", (event) => {
   }
   setActiveCategory(button.dataset.category);
 });
+
+window.addEventListener("scroll", requestCategorySync, { passive: true });
+window.addEventListener("resize", requestCategorySync);
 
 catalog.addEventListener("click", (event) => {
   const button = event.target.closest("[data-action]");
@@ -993,7 +1055,9 @@ function renderApp() {
   renderCart();
   updatePaymentFields();
   updateCommentLabel();
-  setActiveCategory("all");
+  activeCategoryId = "";
+  setActiveCategory("all", "auto");
+  requestCategorySync();
 }
 
 async function refreshCatalog() {
