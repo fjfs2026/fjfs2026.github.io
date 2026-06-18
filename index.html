@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Домашняя еда от Амины: блюда, полуфабрикаты, доставка и самовывоз.">
     <title>AMINKA.PRO - домашняя еда от Амины</title>
-    <link rel="preload" href="images/hero.webp" as="image">
+    <link rel="preload" href="images/hazelnut-wood-bg.webp" as="image">
     <link rel="stylesheet" href="style.css">
     <script src="catalog-config.js" defer></script>
     <script src="script.js" defer></script>
@@ -17,6 +17,7 @@
       </a>
       <nav class="topnav" aria-label="Основные разделы">
         <a href="#menu">Меню</a>
+        <a href="#services">Услуги</a>
         <a href="#about">О нас</a>
         <a href="#contacts">Контакты</a>
       </nav>
@@ -25,7 +26,6 @@
 
     <main id="top">
       <section class="hero" aria-labelledby="hero-title">
-        <img class="hero__image" src="images/hero.webp" alt="Домашний медовик" width="1600" height="1067" fetchpriority="high">
         <div class="hero__overlay"></div>
         <div class="hero__inner">
           <div class="hero__copy">
@@ -36,7 +36,7 @@
               <a class="button button--primary" href="#menu">Смотреть меню</a>
               <a class="button button--ghost" href="https://wa.me/79280893233" target="_blank" rel="noopener">WhatsApp</a>
             </div>
-            <a class="hero__address-mobile" href="https://yandex.ru/maps/?mode=search&text=%D0%A5%D0%B0%D0%BC%D0%B8%D0%B4%D0%B0%20%D0%90%D1%85%D0%BC%D0%B0%D0%B4%D0%BE%D0%B2%D0%B0%2041%2C%20%D0%A2%D1%80%D0%B0%D0%BC%D0%BF%D0%B0%D1%80%D0%BA" target="_blank" rel="noopener">Хамида Ахмадова 41, Трампарк</a>
+            <a class="hero__address-mobile" href="https://yandex.ru/maps/?mode=search&text=%D1%83%D0%BB.%20%D0%A5%D0%B0%D0%BC%D0%B8%D0%B4%D0%B0%20%D0%90%D1%85%D0%BC%D0%B0%D0%B4%D0%BE%D0%B2%D0%B0%2041%2C%20%D0%93%D1%80%D0%BE%D0%B7%D0%BD%D1%8B%D0%B9" target="_blank" rel="noopener">ул. Хамида Ахмадова 41, Трампарк</a>
           </div>
 
           <div class="hero-card" aria-label="Контакты и получение">
@@ -46,7 +46,7 @@
             </div>
             <div>
               <span>Адрес</span>
-              <a href="https://yandex.ru/maps/?mode=search&text=%D0%A5%D0%B0%D0%BC%D0%B8%D0%B4%D0%B0%20%D0%90%D1%85%D0%BC%D0%B0%D0%B4%D0%BE%D0%B2%D0%B0%2041%2C%20%D0%A2%D1%80%D0%B0%D0%BC%D0%BF%D0%B0%D1%80%D0%BA" target="_blank" rel="noopener">Хамида Ахмадова 41, Трампарк</a>
+              <a href="https://yandex.ru/maps/?mode=search&text=%D1%83%D0%BB.%20%D0%A5%D0%B0%D0%BC%D0%B8%D0%B4%D0%B0%20%D0%90%D1%85%D0%BC%D0%B0%D0%B4%D0%BE%D0%B2%D0%B0%2041%2C%20%D0%93%D1%80%D0%BE%D0%B7%D0%BD%D1%8B%D0%B9" target="_blank" rel="noopener">ул. Хамида Ахмадова 41, Трампарк</a>
             </div>
             <div>
               <span>Получение</span>
@@ -62,6 +62,40 @@
         </div>
         <div class="category-tabs" id="categoryTabs" aria-label="Категории меню"></div>
         <div class="catalog" id="catalog" aria-live="polite"></div>
+      </section>
+
+      <section class="services-section" id="services" aria-labelledby="services-title">
+        <div class="services-section__heading">
+          <p class="eyebrow">Услуги</p>
+          <h2 id="services-title">Готовим для дома и праздников</h2>
+        </div>
+        <div class="services-grid">
+          <article>
+            <span>01</span>
+            <h3>Домашние блюда</h3>
+            <p>Горячие блюда, салаты и дополнения для семейного обеда или ужина.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Полуфабрикаты</h3>
+            <p>Пельмени, вареники, манты, котлеты и другие заготовки ручной работы.</p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Торты на заказ</h3>
+            <p>Целые торты и половинки для домашнего чаепития, подарка или праздника.</p>
+          </article>
+          <article>
+            <span>04</span>
+            <h3>Праздничные заказы</h3>
+            <p>Блюда для свадеб, семейных встреч, мероприятий и больших компаний.</p>
+          </article>
+          <article>
+            <span>05</span>
+            <h3>Доставка и самовывоз</h3>
+            <p>Самовывоз из Трампарк или доставка по тарифу выбранного сервиса такси.</p>
+          </article>
+        </div>
       </section>
 
       <section class="about-section" id="about" aria-labelledby="about-title">
@@ -167,7 +201,7 @@
       </div>
       <div>
         <a href="tel:+79280893233">+7 928 089-32-33</a>
-        <a href="https://yandex.ru/maps/?mode=search&text=%D0%A5%D0%B0%D0%BC%D0%B8%D0%B4%D0%B0%20%D0%90%D1%85%D0%BC%D0%B0%D0%B4%D0%BE%D0%B2%D0%B0%2041%2C%20%D0%A2%D1%80%D0%B0%D0%BC%D0%BF%D0%B0%D1%80%D0%BA" target="_blank" rel="noopener">Хамида Ахмадова 41, Трампарк</a>
+        <a href="https://yandex.ru/maps/?mode=search&text=%D1%83%D0%BB.%20%D0%A5%D0%B0%D0%BC%D0%B8%D0%B4%D0%B0%20%D0%90%D1%85%D0%BC%D0%B0%D0%B4%D0%BE%D0%B2%D0%B0%2041%2C%20%D0%93%D1%80%D0%BE%D0%B7%D0%BD%D1%8B%D0%B9" target="_blank" rel="noopener">ул. Хамида Ахмадова 41, Трампарк</a>
       </div>
     </footer>
   </body>

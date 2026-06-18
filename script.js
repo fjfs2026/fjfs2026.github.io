@@ -10,6 +10,7 @@ if (CATALOG_STYLE !== "classic") {
 
 const CATEGORY_ORDER = [
   { id: "all", name: "Все" },
+  { id: "available", name: "В наличии" },
   { id: "hot", name: "Горячее" },
   { id: "semi", name: "Полуфабрикаты" },
   { id: "meat", name: "Мясное" },
@@ -42,20 +43,35 @@ const CATALOG_HEADER_KEYS = new Set([
   ...DISCOUNT_HEADERS
 ]);
 
+const CAKE_VARIANTS = {
+  medovik: [
+    { id: "whole", name: "Целый", price: 1500 },
+    { id: "half", name: "1/2", price: 750 }
+  ],
+  "nut-cake": [
+    { id: "whole", name: "Целый", price: 1300 },
+    { id: "half", name: "1/2", price: 650 }
+  ],
+  "liver-cake": [
+    { id: "whole", name: "Целый", price: 1600 },
+    { id: "half", name: "1/2", price: 800 }
+  ]
+};
+
 const BASE_PRODUCTS = [
-  product("bliny", "Блины 1 шт", 45, "45 ₽", "extra", "preorder", "images/Блины 1шт 45р.webp"),
-  product("vareniki-potato", "Вареники с картошкой", 320, "320 ₽", "hot", "preorder", "images/Вареники с картошкой 320.webp"),
+  product("bliny", "Блины 1 шт", 44, "44 ₽", "extra", "preorder", "images/Блины 1шт 45р.webp", "", 45, "45 ₽"),
+  product("vareniki-potato", "Вареники с картошкой", 320, "320 ₽", "hot", "in", "images/Вареники с картошкой 320.webp"),
   product("vareniki-tvorog", "Вареники с творогом", 400, "400 ₽", "hot", "preorder", "images/Вареники с творогом 400.webp"),
   product("galushki", "Галушки", 220, "220 ₽", "hot", "preorder", "images/Галушки 220р.webp"),
-  product("golubtsy", "Голубцы 10 шт", 1000, "1000 ₽", "hot", "preorder", "images/Голубцы 10шт 1000р.webp"),
+  product("golubtsy", "Голубцы 10 шт", 555, "555 ₽", "hot", "preorder", "images/Голубцы 10шт 1000р.webp", "", 1000, "1000 ₽"),
   product("zazharka", "Зажарка", 190, "190 ₽", "extra", "preorder", "images/Зажарка 190.webp"),
   product("manty-squares", "Квадратики на манты 50 шт", 300, "300 ₽", "semi", "preorder", "images/Квадратики на манты 50шт 300р.webp"),
   product("kiev-cutlets", "Котлеты по-киевски 5 шт", 700, "700 ₽", "meat", "preorder", "images/Котлеты по - киевски 5шт 700р.webp"),
   product("chicken-cutlets", "Куриные котлеты 10 шт", 850, "850 ₽", "meat", "preorder", "images/Куриные котлеты 10шт 850.webp"),
   product("chicken-chops", "Куриные отбивные 5 шт", 600, "600 ₽", "meat", "preorder", "images/Куриные отбивные 5шт 600р.webp"),
-  product("manty", "Манты", 450, "450 ₽", "hot", "preorder", "images/Манты 450.webp"),
+  product("manty", "Манты", 450, "450 ₽", "hot", "in", "images/Манты 450.webp"),
   product("medovik", "Медовик", 1500, "1500 ₽ / 750 ₽", "desserts", "preorder", "images/Медовик 1500 750.webp"),
-  product("meat-cutlets", "Мясные котлеты 10 шт", 850, "850 ₽", "meat", "preorder", "images/Мясные котлеты 10шт 850.webp"),
+  product("meat-cutlets", "Мясные котлеты 10 шт", 750, "750 ₽", "meat", "preorder", "images/Мясные котлеты 10шт 850.webp", "", 850, "850 ₽"),
   product("meat-chicken-rolls", "Мясные и куриные рулеты", 2200, "2200 ₽", "meat", "preorder", "images/Мясные, куриные рулеты 2200.webp"),
   product("nut-cake", "Ореховый торт", 1300, "1300 ₽", "desserts", "preorder", "images/Ореховый торт 1300.webp"),
   product("pelmeni", "Пельмени", 450, "450 ₽", "hot", "preorder", "images/Пельмени 450.webp"),
@@ -96,9 +112,22 @@ const cashChange = document.querySelector("#cashChange");
 let products = BASE_PRODUCTS.map((item) => ({ ...item }));
 let categories = buildCategories(products);
 let cart = [];
+const selectedVariants = new Map();
 
 function product(id, name, price, priceText, category, status, image, description = "", oldPrice = 0, oldPriceText = "") {
-  return { id, name, price, priceText, category, status, image, description, oldPrice, oldPriceText };
+  return {
+    id,
+    name,
+    price,
+    priceText,
+    category,
+    status,
+    image,
+    description,
+    oldPrice,
+    oldPriceText,
+    variants: CAKE_VARIANTS[id] || []
+  };
 }
 
 function normalize(value) {
@@ -128,32 +157,44 @@ function parsePriceNumber(value) {
   return match ? Number(match[0].replace(",", ".")) : 0;
 }
 
-function descriptionFromText(value, fallback = "") {
+function normalizePriceText(value, fallbackPrice = 0) {
   const text = normalize(value);
 
   if (!text) {
-    return fallback;
+    return fallbackPrice ? formatPrice(fallbackPrice) : "уточнить";
   }
 
-  if (normalizeKey(text).replace(/[:：]/g, "").trim() === "состав") {
-    return "";
+  if (/уточ/i.test(text) || /₽/.test(text)) {
+    return text;
   }
 
-  return normalizeKey(text).startsWith("состав") ? text : `Состав: ${text}`;
+  if (/^\d+(?:[.,]\d+)?$/.test(text.replace(/\s+/g, ""))) {
+    return formatPrice(parsePriceNumber(text));
+  }
+
+  return text;
+}
+
+function descriptionFromText(value, fallback = "") {
+  const text = normalize(value);
+
+  return text || fallback;
 }
 
 function priceFromCells(priceCell, discountCell, base = {}) {
   const regularText = normalize(priceCell);
   const discountText = normalize(discountCell);
   const regularPrice = regularText ? parsePriceNumber(regularText) : (base.price || 0);
-  const regularPriceText = regularText || base.priceText || (regularPrice ? formatPrice(regularPrice) : "уточнить");
+  const regularPriceText = regularText
+    ? normalizePriceText(regularText, regularPrice)
+    : (base.priceText || (regularPrice ? formatPrice(regularPrice) : "уточнить"));
 
   if (discountText) {
     const discountPrice = parsePriceNumber(discountText);
 
     return {
       price: discountPrice,
-      priceText: discountText || (discountPrice ? formatPrice(discountPrice) : "уточнить"),
+      priceText: normalizePriceText(discountText, discountPrice),
       oldPrice: regularPrice,
       oldPriceText: regularPriceText
     };
@@ -357,7 +398,11 @@ function buildCategories(items) {
   const used = new Set(["all"]);
 
   CATEGORY_ORDER.slice(1).forEach((category) => {
-    if (items.some((item) => item.category === category.id)) {
+    const hasItems = category.id === "available"
+      ? items.some((item) => item.status === "in")
+      : items.some((item) => item.category === category.id);
+
+    if (hasItems) {
       result.push(category);
       used.add(category.id);
     }
@@ -373,6 +418,47 @@ function buildCategories(items) {
   return result;
 }
 
+function selectedVariant(item) {
+  if (!item.variants?.length) {
+    return null;
+  }
+
+  const selectedId = selectedVariants.get(item.id) || item.variants[0].id;
+  return item.variants.find((variant) => variant.id === selectedId) || item.variants[0];
+}
+
+function cartItemId(productId, variantId = "") {
+  return variantId ? `${productId}::${variantId}` : productId;
+}
+
+function purchasableItem(productId, variantId = "") {
+  const item = products.find((productItem) => productItem.id === productId);
+  if (!item) {
+    return null;
+  }
+
+  const variant = item.variants?.length
+    ? item.variants.find((option) => option.id === variantId) || selectedVariant(item)
+    : null;
+
+  if (!variant) {
+    return { ...item, productId: item.id, variantId: "", variantName: "" };
+  }
+
+  return {
+    ...item,
+    id: cartItemId(item.id, variant.id),
+    productId: item.id,
+    variantId: variant.id,
+    variantName: variant.name,
+    name: `${item.name} — ${variant.name}`,
+    price: variant.price,
+    priceText: formatPrice(variant.price),
+    oldPrice: 0,
+    oldPriceText: ""
+  };
+}
+
 function loadCart() {
   try {
     const saved = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
@@ -382,7 +468,10 @@ function loadCart() {
     }
 
     return saved.map((savedItem) => {
-      const item = products.find((productItem) => productItem.id === savedItem.id);
+      const legacyParts = normalize(savedItem.id).split("::");
+      const productId = savedItem.productId || legacyParts[0];
+      const variantId = savedItem.variantId || legacyParts[1] || "";
+      const item = purchasableItem(productId, variantId);
       const quantity = Math.max(1, Number(savedItem.quantity) || 1);
 
       if (!item || item.status === "out") {
@@ -399,12 +488,14 @@ function loadCart() {
 function saveCart() {
   localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart.map((item) => ({
     id: item.id,
+    productId: item.productId || item.id,
+    variantId: item.variantId || "",
     quantity: item.quantity
   }))));
 }
 
-function cartQuantity(productId) {
-  return cart.find((item) => item.id === productId)?.quantity || 0;
+function cartQuantity(productId, variantId = "") {
+  return cart.find((item) => item.id === cartItemId(productId, variantId))?.quantity || 0;
 }
 
 function cartCountValue() {
@@ -445,7 +536,9 @@ function renderCategories() {
 
 function renderCatalog() {
   catalog.innerHTML = categories.filter((category) => category.id !== "all").map((category) => {
-    const categoryProducts = products.filter((item) => item.category === category.id);
+    const categoryProducts = category.id === "available"
+      ? products.filter((item) => item.status === "in")
+      : products.filter((item) => item.category === category.id);
 
     if (!categoryProducts.length) {
       return "";
@@ -466,10 +559,34 @@ function renderCatalog() {
 }
 
 function renderProductCard(item) {
-  const quantity = cartQuantity(item.id);
+  const variant = selectedVariant(item);
+  const displayItem = variant ? purchasableItem(item.id, variant.id) : item;
+  const quantity = cartQuantity(item.id, variant?.id || "");
   const unavailable = item.status === "out";
   const description = normalize(item.description)
     ? `<p class="product-card__description">${escapeHtml(item.description)}</p>`
+    : "";
+  const variantControl = item.variants?.length
+    ? `
+      <div class="product-card__variant-wrap" aria-label="Выберите размер ${escapeHtml(item.name)}">
+        <span>Размер</span>
+        <div class="product-card__variant-buttons">
+          ${item.variants.map((option) => `
+            <button
+              class="product-card__variant-button ${option.id === variant?.id ? "is-active" : ""}"
+              type="button"
+              data-action="variant"
+              data-product-id="${escapeHtml(item.id)}"
+              data-variant-id="${escapeHtml(option.id)}"
+              aria-pressed="${option.id === variant?.id ? "true" : "false"}"
+            >
+              <span>${escapeHtml(option.name)}</span>
+              <strong>${escapeHtml(formatPrice(option.price))}</strong>
+            </button>
+          `).join("")}
+        </div>
+      </div>
+    `
     : "";
   const media = item.image
     ? `<img class="product-card__image" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy" width="720" height="720" onerror="showImagePlaceholder(this)">`
@@ -479,12 +596,12 @@ function renderProductCard(item) {
     : quantity
       ? `
         <div class="quantity-control" aria-label="Количество">
-          <button type="button" data-action="decrease" data-id="${escapeHtml(item.id)}" aria-label="Уменьшить">−</button>
+          <button type="button" data-action="decrease" data-cart-id="${escapeHtml(displayItem.id)}" data-product-id="${escapeHtml(item.id)}" aria-label="Уменьшить">−</button>
           <span>${quantity}</span>
-          <button type="button" data-action="add" data-id="${escapeHtml(item.id)}" aria-label="Увеличить">+</button>
+          <button type="button" data-action="add" data-product-id="${escapeHtml(item.id)}" data-variant-id="${escapeHtml(variant?.id || "")}" aria-label="Увеличить">+</button>
         </div>
       `
-      : `<button class="round-action" type="button" data-action="add" data-id="${escapeHtml(item.id)}" aria-label="Добавить">+</button>`;
+      : `<button class="round-action" type="button" data-action="add" data-product-id="${escapeHtml(item.id)}" data-variant-id="${escapeHtml(variant?.id || "")}" aria-label="Добавить">+</button>`;
 
   return `
     <article class="product-card ${unavailable ? "is-unavailable" : ""}" data-product-id="${escapeHtml(item.id)}">
@@ -498,9 +615,10 @@ function renderProductCard(item) {
       <div class="product-card__body">
         <p class="product-card__eyebrow">Домашняя кухня</p>
         <h4>${escapeHtml(item.name)}</h4>
-        ${description}
+        ${variantControl}
         <div class="product-card__bottom">
-          ${renderPrice(item)}
+          ${renderPrice(displayItem)}
+          ${description}
           ${control}
         </div>
       </div>
@@ -530,8 +648,8 @@ function updateProductCard(productId) {
   });
 }
 
-function addToCart(productId) {
-  const item = products.find((productItem) => productItem.id === productId);
+function addToCart(productId, variantId = "") {
+  const item = purchasableItem(productId, variantId);
   if (!item || item.status === "out") {
     return;
   }
@@ -543,26 +661,28 @@ function addToCart(productId) {
     cart.push({ ...item, quantity: 1 });
   }
 
-  syncCart(productId);
+  syncCart(item.productId || productId);
 }
 
-function changeQuantity(productId, delta) {
-  const existing = cart.find((item) => item.id === productId);
+function changeQuantity(cartId, delta) {
+  const existing = cart.find((item) => item.id === cartId);
   if (!existing) {
     return;
   }
 
+  const productId = existing.productId || existing.id;
   existing.quantity += delta;
   if (existing.quantity <= 0) {
-    cart = cart.filter((item) => item.id !== productId);
+    cart = cart.filter((item) => item.id !== cartId);
   }
 
   syncCart(productId);
 }
 
-function removeFromCart(productId) {
-  cart = cart.filter((item) => item.id !== productId);
-  syncCart(productId);
+function removeFromCart(cartId) {
+  const existing = cart.find((item) => item.id === cartId);
+  cart = cart.filter((item) => item.id !== cartId);
+  syncCart(existing?.productId || cartId);
 }
 
 function syncCart(productId) {
@@ -728,11 +848,16 @@ catalog.addEventListener("click", (event) => {
   }
 
   if (button.dataset.action === "add") {
-    addToCart(button.dataset.id);
+    addToCart(button.dataset.productId, button.dataset.variantId || "");
   }
 
   if (button.dataset.action === "decrease") {
-    changeQuantity(button.dataset.id, -1);
+    changeQuantity(button.dataset.cartId, -1);
+  }
+
+  if (button.dataset.action === "variant") {
+    selectedVariants.set(button.dataset.productId, button.dataset.variantId);
+    updateProductCard(button.dataset.productId);
   }
 });
 
@@ -743,7 +868,7 @@ cartItems.addEventListener("click", (event) => {
   }
 
   if (button.dataset.cartAction === "increase") {
-    addToCart(button.dataset.id);
+    changeQuantity(button.dataset.id, 1);
   }
 
   if (button.dataset.cartAction === "decrease") {
