@@ -1,9 +1,10 @@
 const WHATSAPP_NUMBER = "79280893233";
 const CART_STORAGE_KEY = "aminka-cart-v3";
-const CATALOG_CSV_URL = (window.CATALOG_CSV_URL || "").trim();
-const CATALOG_STYLE = new URLSearchParams(window.location.search).get("catalog");
+const PUBLIC_CATALOG_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvME1oYerxh0AxmPC03dYrQOXAXljckYbyT4eHninXeWrubMAYNetpenKLuUYcszXLc_jeQFuI8HuT/pub?gid=0&single=true&output=csv";
+const CATALOG_CSV_URL = (window.CATALOG_CSV_URL || PUBLIC_CATALOG_CSV_URL).trim();
+const CATALOG_STYLE = new URLSearchParams(window.location.search).get("catalog") || "glass";
 
-if (CATALOG_STYLE === "glass") {
+if (CATALOG_STYLE !== "classic") {
   document.documentElement.classList.add("catalog-glass");
 }
 
@@ -24,6 +25,21 @@ const CATEGORY_ALIASES = new Map([
   ["десерты", "desserts"],
   ["салаты", "salads"],
   ["дополнительно", "extra"]
+]);
+
+const NAME_HEADERS = ["название", "товар", "блюдо", "name", "title", "item", "product"];
+const CATEGORY_HEADERS = ["категория", "раздел", "category", "section"];
+const STATUS_HEADERS = ["статус", "наличие", "status", "availability"];
+const DESCRIPTION_HEADERS = ["описание", "состав", "description"];
+const PRICE_HEADERS = ["цена", "price"];
+const DISCOUNT_HEADERS = ["цена со скидкой", "скидка", "акционная цена", "цена скидка", "discount price", "sale price"];
+const CATALOG_HEADER_KEYS = new Set([
+  ...NAME_HEADERS,
+  ...CATEGORY_HEADERS,
+  ...STATUS_HEADERS,
+  ...DESCRIPTION_HEADERS,
+  ...PRICE_HEADERS,
+  ...DISCOUNT_HEADERS
 ]);
 
 const BASE_PRODUCTS = [
@@ -81,8 +97,8 @@ let products = BASE_PRODUCTS.map((item) => ({ ...item }));
 let categories = buildCategories(products);
 let cart = [];
 
-function product(id, name, price, priceText, category, status, image) {
-  return { id, name, price, priceText, category, status, image };
+function product(id, name, price, priceText, category, status, image, description = "", oldPrice = 0, oldPriceText = "") {
+  return { id, name, price, priceText, category, status, image, description, oldPrice, oldPriceText };
 }
 
 function normalize(value) {
@@ -106,15 +122,64 @@ function formatPrice(value) {
   return new Intl.NumberFormat("ru-RU").format(value) + " ₽";
 }
 
+function parsePriceNumber(value) {
+  const compact = normalize(value).replace(/\s+/g, "");
+  const match = compact.match(/\d+(?:[,.]\d+)?/);
+  return match ? Number(match[0].replace(",", ".")) : 0;
+}
+
+function descriptionFromText(value, fallback = "") {
+  const text = normalize(value);
+
+  if (!text) {
+    return fallback;
+  }
+
+  if (normalizeKey(text).replace(/[:：]/g, "").trim() === "состав") {
+    return "";
+  }
+
+  return normalizeKey(text).startsWith("состав") ? text : `Состав: ${text}`;
+}
+
+function priceFromCells(priceCell, discountCell, base = {}) {
+  const regularText = normalize(priceCell);
+  const discountText = normalize(discountCell);
+  const regularPrice = regularText ? parsePriceNumber(regularText) : (base.price || 0);
+  const regularPriceText = regularText || base.priceText || (regularPrice ? formatPrice(regularPrice) : "уточнить");
+
+  if (discountText) {
+    const discountPrice = parsePriceNumber(discountText);
+
+    return {
+      price: discountPrice,
+      priceText: discountText || (discountPrice ? formatPrice(discountPrice) : "уточнить"),
+      oldPrice: regularPrice,
+      oldPriceText: regularPriceText
+    };
+  }
+
+  return {
+    price: regularPrice,
+    priceText: regularPriceText,
+    oldPrice: 0,
+    oldPriceText: ""
+  };
+}
+
 function statusFromText(value) {
   const text = normalizeKey(value);
 
-  if (text.includes("нет")) {
+  if (text.includes("нет") || text.includes("out") || text.includes("none")) {
     return "out";
   }
 
-  if (text.includes("есть") || text.includes("налич")) {
+  if (text.includes("есть") || text.includes("налич") || text.includes("available") || text.includes("in stock")) {
     return "in";
+  }
+
+  if (text.includes("preorder") || text.includes("order")) {
+    return "preorder";
   }
 
   return "preorder";
@@ -206,7 +271,11 @@ function parseCsv(text) {
   row.push(cell);
   rows.push(row);
 
-  const [headers = [], ...dataRows] = rows.filter((items) => items.some((item) => normalize(item)));
+  const compactRows = rows.filter((items) => items.some((item) => normalize(item)));
+  const headerIndex = compactRows.findIndex((items) => items.some((item) => CATALOG_HEADER_KEYS.has(normalizeKey(item))));
+  const headers = headerIndex >= 0 ? compactRows[headerIndex] : (compactRows[0] || []);
+  const dataRows = compactRows.slice(headerIndex >= 0 ? headerIndex + 1 : 1);
+
   return dataRows.map((items) => Object.fromEntries(headers.map((header, index) => [normalize(header), normalize(items[index])])));
 }
 
@@ -232,18 +301,25 @@ function productsFromRows(rows) {
   const byName = new Map(BASE_PRODUCTS.map((item) => [normalizeKey(item.name), item]));
 
   return rows.map((row, index) => {
-    const name = rowValue(row, ["название", "товар", "блюдо"]);
+    const name = rowValue(row, NAME_HEADERS);
     if (!name) {
       return null;
     }
 
     const base = byName.get(normalizeKey(name));
-    const categoryText = rowValue(row, ["категория", "раздел"]);
-    const statusText = rowValue(row, ["статус", "наличие"]);
+    const categoryText = rowValue(row, CATEGORY_HEADERS);
+    const statusText = rowValue(row, STATUS_HEADERS);
+    const descriptionText = rowValue(row, DESCRIPTION_HEADERS);
+    const priceText = rowValue(row, PRICE_HEADERS);
+    const discountText = rowValue(row, DISCOUNT_HEADERS);
+    const priceData = priceFromCells(priceText, discountText, base || {});
+    const description = descriptionFromText(descriptionText, base?.description || "");
 
     if (base) {
       return {
         ...base,
+        ...priceData,
+        description,
         category: categoryIdFromText(categoryText, base.category),
         status: statusFromText(statusText || statusLabel(base.status))
       };
@@ -252,8 +328,8 @@ function productsFromRows(rows) {
     return {
       id: "sheet-" + index,
       name,
-      price: 0,
-      priceText: "уточнить",
+      ...priceData,
+      description,
       category: categoryIdFromText(categoryText, "extra"),
       status: statusFromText(statusText),
       image: ""
@@ -347,6 +423,19 @@ function displayPrice(item) {
   return item.priceText || (item.price ? formatPrice(item.price) : "уточнить");
 }
 
+function renderPrice(item) {
+  if (item.oldPriceText) {
+    return `
+      <span class="product-card__price">
+        <span class="product-card__old-price">${escapeHtml(item.oldPriceText)}</span>
+        <span class="product-card__sale-price">${escapeHtml(displayPrice(item))}</span>
+      </span>
+    `;
+  }
+
+  return `<span class="product-card__price">${escapeHtml(displayPrice(item))}</span>`;
+}
+
 function renderCategories() {
   categoryTabs.innerHTML = categories.map((category) => {
     const target = category.id === "all" ? "#menu" : "#category-" + category.id;
@@ -379,6 +468,9 @@ function renderCatalog() {
 function renderProductCard(item) {
   const quantity = cartQuantity(item.id);
   const unavailable = item.status === "out";
+  const description = normalize(item.description)
+    ? `<p class="product-card__description">${escapeHtml(item.description)}</p>`
+    : "";
   const media = item.image
     ? `<img class="product-card__image" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" loading="lazy" width="720" height="720" onerror="showImagePlaceholder(this)">`
     : `<div class="product-card__placeholder">Фото добавим позже</div>`;
@@ -404,9 +496,11 @@ function renderProductCard(item) {
         </div>
       </div>
       <div class="product-card__body">
+        <p class="product-card__eyebrow">Домашняя кухня</p>
         <h4>${escapeHtml(item.name)}</h4>
+        ${description}
         <div class="product-card__bottom">
-          <span class="product-card__price">${escapeHtml(displayPrice(item))}</span>
+          ${renderPrice(item)}
           ${control}
         </div>
       </div>
@@ -526,7 +620,7 @@ function closeCartDrawer() {
 }
 
 function selectedPaymentType() {
-  return new FormData(orderForm).get("paymentType") || "Картой";
+  return new FormData(orderForm).get("paymentType") || "";
 }
 
 function selectedDeliveryType() {
@@ -557,13 +651,20 @@ function validateOrder() {
     return "Укажите адрес доставки.";
   }
 
+  if (!selectedPaymentType()) {
+    return "Выберите оплату картой или наличными.";
+  }
+
   return "";
 }
 
 function buildOrderMessage() {
   const lines = cart.map((item, index) => {
+    const itemPrice = item.oldPriceText
+      ? `${item.oldPriceText} -> ${displayPrice(item)}`
+      : displayPrice(item);
     const price = item.price
-      ? `${item.quantity} шт × ${displayPrice(item)} = ${formatPrice(item.quantity * item.price)}`
+      ? `${item.quantity} шт × ${itemPrice} = ${formatPrice(item.quantity * item.price)}`
       : `${item.quantity} шт · цена уточняется`;
 
     return `${index + 1}. ${item.name} (${statusLabel(item.status)}) - ${price}`;
