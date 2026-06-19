@@ -688,7 +688,7 @@ function renderProductCard(item) {
     ? `<p class="product-card__description">${escapeHtml(item.description)}</p>`
     : "";
   const weight = normalize(item.weight)
-    ? `<p class="product-card__weight">${escapeHtml(item.weight)}</p>`
+    ? `<span class="product-card__weight">${escapeHtml(item.weight)}</span>`
     : "";
   const variantLabel = item.id === "strawberry-jam" ? "Вес" : "Размер";
   const variantControl = item.variants?.length
@@ -728,8 +728,7 @@ function renderProductCard(item) {
       </div>
       <div class="product-card__body">
         <p class="product-card__eyebrow">Домашняя кухня</p>
-        <h4>${escapeHtml(item.name)}</h4>
-        ${weight}
+        <h4>${escapeHtml(item.name)}${weight}</h4>
         ${variantControl}
         <div class="product-card__bottom">
           <span class="product-card__price-slot">${renderPrice(displayItem)}</span>

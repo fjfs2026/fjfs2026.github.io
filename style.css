@@ -504,11 +504,13 @@ button {
 }
 
 .product-card__weight {
-  margin: -5px 0 0;
+  display: inline;
+  margin-left: 0.35em;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 0.72em;
   font-weight: 800;
-  line-height: 1.1;
+  letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .product-card__description {
@@ -722,9 +724,9 @@ button {
 }
 
 .catalog-glass .product-card__weight {
-  margin: 0;
+  margin-left: 0.35em;
   color: rgba(255, 255, 255, 0.66);
-  font-size: clamp(10px, 2.2cqw, 15px);
+  font-size: 0.62em;
   font-weight: 800;
   text-shadow: 0 2px 12px rgba(24, 12, 9, 0.72);
 }
@@ -1552,10 +1554,6 @@ button {
     line-height: 1.02;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
-  }
-
-  .catalog-glass .product-card__weight {
-    font-size: 9px;
   }
 
   .product-card__variant-wrap {
