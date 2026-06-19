@@ -119,7 +119,7 @@ let cart = [];
 let lastCatalogSyncAt = 0;
 let catalogRefreshTimer = 0;
 let activeCategoryId = "";
-let selectedCategoryFilter = "all";
+let categoryScrollFrame = 0;
 const selectedVariants = new Map();
 
 function product(id, name, price, priceText, category, status, image, description = "", oldPrice = 0, oldPriceText = "") {
@@ -944,14 +944,36 @@ function setActiveCategory(categoryId, behavior = "smooth") {
   }
 }
 
-function applyCategoryFilter(categoryId, behavior = "smooth") {
-  selectedCategoryFilter = categoryId;
+function syncActiveCategory() {
+  categoryScrollFrame = 0;
+  const sections = [...catalog.querySelectorAll(".category-section")];
 
-  catalog.querySelectorAll(".category-section").forEach((section) => {
-    section.hidden = categoryId !== "all" && section.dataset.category !== categoryId;
+  if (!sections.length) {
+    return;
+  }
+
+  const tabsRect = categoryTabs.getBoundingClientRect();
+  if (tabsRect.top > 1) {
+    setActiveCategory("all");
+    return;
+  }
+
+  const marker = tabsRect.bottom + 18;
+  let currentCategory = "all";
+
+  sections.forEach((section) => {
+    if (section.getBoundingClientRect().top <= marker) {
+      currentCategory = section.dataset.category;
+    }
   });
 
-  setActiveCategory(categoryId, behavior);
+  setActiveCategory(currentCategory);
+}
+
+function requestCategorySync() {
+  if (!categoryScrollFrame) {
+    categoryScrollFrame = window.requestAnimationFrame(syncActiveCategory);
+  }
 }
 
 categoryTabs.addEventListener("click", (event) => {
@@ -960,9 +982,15 @@ categoryTabs.addEventListener("click", (event) => {
     return;
   }
 
-  applyCategoryFilter(button.dataset.category);
-  document.querySelector("#menu")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const target = document.querySelector(button.dataset.target);
+  if (target) {
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  setActiveCategory(button.dataset.category);
 });
+
+window.addEventListener("scroll", requestCategorySync, { passive: true });
+window.addEventListener("resize", requestCategorySync);
 
 catalog.addEventListener("click", (event) => {
   const button = event.target.closest("[data-action]");
@@ -1028,7 +1056,8 @@ function renderApp() {
   updatePaymentFields();
   updateCommentLabel();
   activeCategoryId = "";
-  applyCategoryFilter(selectedCategoryFilter, "auto");
+  setActiveCategory("all", "auto");
+  requestCategorySync();
 }
 
 async function refreshCatalog() {
