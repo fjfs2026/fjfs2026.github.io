@@ -468,7 +468,10 @@ button {
 }
 
 .product-card__badge--preorder {
-  color: var(--red-dark);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  background: linear-gradient(135deg, #9f1239, #d0184b);
+  color: #fff;
+  box-shadow: 0 7px 22px rgba(117, 9, 42, 0.4);
 }
 
 .product-card__badge--in {
@@ -776,6 +779,10 @@ button {
   gap: 3px;
 }
 
+.product-card__variant-wrap--compact {
+  width: min(360px, 100%);
+}
+
 .product-card__variant-wrap > span {
   color: rgba(255, 255, 255, 0.68);
   font-size: clamp(9px, 1.8cqw, 13px);
@@ -813,6 +820,16 @@ button {
   font-size: clamp(9px, 1.8cqw, 12px);
 }
 
+.product-card__variant-inline {
+  font-size: clamp(10px, 2.2cqw, 15px);
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.product-card__variant-inline b {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .product-card__variant-button.is-active {
   border-color: rgba(255, 255, 255, 0.8);
   background: #bd0f3e;
@@ -845,6 +862,13 @@ button {
   background: linear-gradient(135deg, #176d43, #2e9a62);
   color: #fff;
   box-shadow: 0 7px 22px rgba(11, 76, 43, 0.42);
+}
+
+.catalog-glass .product-card__badge--preorder {
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  background: linear-gradient(135deg, #9f1239, #d0184b);
+  color: #fff;
+  box-shadow: 0 7px 22px rgba(117, 9, 42, 0.46);
 }
 
 .catalog-glass .round-action,
@@ -1580,6 +1604,10 @@ button {
 
   .product-card__variant-button > strong {
     font-size: 7px;
+  }
+
+  .product-card__variant-inline {
+    font-size: clamp(7px, 2.1vw, 9px);
   }
 
   .catalog-glass .product-card__bottom {

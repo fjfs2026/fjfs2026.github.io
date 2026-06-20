@@ -1,6 +1,6 @@
 const WHATSAPP_NUMBER = "79280893233";
-const CART_STORAGE_KEY = "aminka-cart-v3";
-const CATALOG_CACHE_KEY = "aminka-catalog-cache-v2";
+const CART_STORAGE_KEY = "aminka-cart-v4";
+const CATALOG_CACHE_KEY = "aminka-catalog-cache-v3";
 const CATALOG_REFRESH_INTERVAL = 10 * 60 * 1000;
 const PUBLIC_CATALOG_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQvME1oYerxh0AxmPC03dYrQOXAXljckYbyT4eHninXeWrubMAYNetpenKLuUYcszXLc_jeQFuI8HuT/pub?gid=0&single=true&output=csv";
 const CATALOG_CSV_URL = (window.CATALOG_CSV_URL || PUBLIC_CATALOG_CSV_URL).trim();
@@ -67,7 +67,7 @@ const CAKE_VARIANTS = {
 };
 
 const STRAWBERRY_VARIANTS = [
-  { id: "220g", name: "220 г", price: 220 },
+  { id: "240g", name: "240 г", price: 220 },
   { id: "450g", name: "450 г", price: 450 }
 ];
 
@@ -100,7 +100,7 @@ const BASE_PRODUCTS = [
   product("stuffed-peppers", "Фаршированные перцы", 850, "850 ₽", "hot", "preorder", "images/Фаршированные перцы - 850р.webp"),
   product("hanum", "Ханум", 350, "350 ₽", "hot", "in", "images/Ханум 350р.webp"),
   product("chebureki", "Чебуреки 5 шт", 350, "350 ₽", "semi", "in", "images/Чебуреки 5шт 350.webp"),
-  product("strawberry-jam", "Клубничное варенье", 450, "450 ₽", "frozen", "in", "images/Клубничное варенье.webp", "", 0, "", "220 г / 450 г"),
+  product("strawberry-jam", "Клубничное варенье", 450, "450 ₽", "frozen", "in", "images/Клубничное варенье.webp"),
   product("chicken-arabic", "Курица по-арабски", 240, "240 ₽", "semi", "in", "images/Курица по-арабски.webp"),
   product("chicken-marinade", "Курица в маринаде", 280, "280 ₽", "semi", "in", "images/Курица в маринаде.webp"),
   product("potato-pies", "Пирожки с картошкой", 60, "60 ₽", "hot", "in", "images/Пирожки с картошкой.webp")
@@ -163,6 +163,16 @@ function normalizeKey(value) {
     .replace(/\s*-\s*/g, "-")
     .replace(/\s+/g, " ");
 }
+
+function productNameKey(value) {
+  return normalizeKey(value)
+    .replace(/\s+\d+(?:[.,]\d+)?\s*(?:шт|штук|гр|г|кг)\.?$/i, "")
+    .trim();
+}
+
+const PRODUCT_NAME_ALIASES = new Map([
+  ["салат овощной", "salad"]
+]);
 
 function escapeHtml(value) {
   return normalize(value)
@@ -238,13 +248,13 @@ function variantsFromPrices(baseVariants, wholePrice, halfPriceCell, productId =
   if (productId === "strawberry-jam") {
     const smallPrice = normalize(halfPriceCell)
       ? parsePriceNumber(halfPriceCell)
-      : (baseVariants.find((variant) => variant.id === "220g")?.price || 0);
+      : (baseVariants.find((variant) => variant.id === "240g")?.price || 0);
     const largePrice = wholePrice
       || baseVariants.find((variant) => variant.id === "450g")?.price
       || 0;
 
     return [
-      { id: "220g", name: "220 г", price: smallPrice },
+      { id: "240g", name: "240 г", price: smallPrice },
       { id: "450g", name: "450 г", price: largePrice }
     ].filter((variant) => variant.price > 0);
   }
@@ -429,7 +439,8 @@ function rowValue(row, names) {
 }
 
 function productsFromRows(rows) {
-  const byName = new Map(BASE_PRODUCTS.map((item) => [normalizeKey(item.name), item]));
+  const byName = new Map(BASE_PRODUCTS.map((item) => [productNameKey(item.name), item]));
+  const byId = new Map(BASE_PRODUCTS.map((item) => [item.id, item]));
 
   return rows.map((row, index) => {
     const name = rowValue(row, NAME_HEADERS);
@@ -437,7 +448,8 @@ function productsFromRows(rows) {
       return null;
     }
 
-    const base = byName.get(normalizeKey(name));
+    const nameKey = productNameKey(name);
+    const base = byName.get(nameKey) || byId.get(PRODUCT_NAME_ALIASES.get(nameKey));
     const categoryText = rowValue(row, CATEGORY_HEADERS);
     const statusText = rowValue(row, STATUS_HEADERS);
     const descriptionText = rowValue(row, DESCRIPTION_HEADERS);
@@ -687,14 +699,15 @@ function renderProductCard(item) {
   const description = normalize(item.description)
     ? `<p class="product-card__description">${escapeHtml(item.description)}</p>`
     : "";
-  const weight = normalize(item.weight)
+  const weight = item.id !== "strawberry-jam" && normalize(item.weight)
     ? `<span class="product-card__weight">${escapeHtml(item.weight)}</span>`
     : "";
-  const variantLabel = item.id === "strawberry-jam" ? "Вес" : "Размер";
+  const isStrawberry = item.id === "strawberry-jam";
+  const variantLabel = "Размер";
   const variantControl = item.variants?.length
     ? `
-      <div class="product-card__variant-wrap" aria-label="Выберите ${variantLabel.toLowerCase()} ${escapeHtml(item.name)}">
-        <span>${variantLabel}</span>
+      <div class="product-card__variant-wrap ${isStrawberry ? "product-card__variant-wrap--compact" : ""}" aria-label="Выберите вариант ${escapeHtml(item.name)}">
+        ${isStrawberry ? "" : `<span>${variantLabel}</span>`}
         <div class="product-card__variant-buttons">
           ${item.variants.map((option) => `
             <button
@@ -705,8 +718,9 @@ function renderProductCard(item) {
               data-variant-id="${escapeHtml(option.id)}"
               aria-pressed="${option.id === variant?.id ? "true" : "false"}"
             >
-              <span>${escapeHtml(option.name)}</span>
-              <strong>${escapeHtml(formatPrice(option.price))}</strong>
+              ${isStrawberry
+                ? `<span class="product-card__variant-inline">${escapeHtml(option.name)} <b>·</b> ${escapeHtml(formatPrice(option.price))}</span>`
+                : `<span>${escapeHtml(option.name)}</span><strong>${escapeHtml(formatPrice(option.price))}</strong>`}
             </button>
           `).join("")}
         </div>
@@ -723,11 +737,9 @@ function renderProductCard(item) {
         ${media}
         <div class="product-card__badges">
           <span class="product-card__badge ${statusClass(item.status)}">${statusLabel(item.status)}</span>
-          <span class="product-card__badge product-card__badge--category">${escapeHtml(categoryName(item.category))}</span>
         </div>
       </div>
       <div class="product-card__body">
-        <p class="product-card__eyebrow">Домашняя кухня</p>
         <h4>${escapeHtml(item.name)}${weight}</h4>
         ${variantControl}
         <div class="product-card__bottom">
