@@ -463,6 +463,7 @@ function productsFromRows(rows) {
     if (base) {
       return {
         ...base,
+        name,
         ...priceData,
         description,
         weight: normalize(weightText) || base.weight || "",
