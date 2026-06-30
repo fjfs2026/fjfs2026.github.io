@@ -103,7 +103,10 @@ const BASE_PRODUCTS = [
   product("strawberry-jam", "Клубничное варенье", 450, "450 ₽", "frozen", "in", "images/Клубничное варенье.webp"),
   product("chicken-arabic", "Курица по-арабски", 240, "240 ₽", "semi", "in", "images/Курица по-арабски.webp"),
   product("chicken-marinade", "Курица в маринаде", 280, "280 ₽", "semi", "in", "images/Курица в маринаде.webp"),
-  product("potato-pies", "Пирожки с картошкой", 60, "60 ₽", "hot", "in", "images/Пирожки с картошкой.webp")
+  product("potato-pies", "Пирожки с картошкой", 60, "60 ₽", "hot", "in", "images/Пирожки с картошкой.webp"),
+  product("barsh","Б1арш, йоьхьш",690,"690 ₽","hot","in","images/Б1арш, йоьхьш.webp","",0,"","1 кг"),
+  product(  "home-nuts",  "Домашние орешки",  25, "25 ₽", "desserts", "in","images/Домашние орешки.webp", "", 0, "", "1 шт"),
+  product( "lapsha-container", "Лапша контейнер", 350, "350 ₽",  "semi",  "in", "images/Лапша контейнер.webp",  "", 0, "", "")
 ];
 
 const categoryTabs = document.querySelector("#categoryTabs");
