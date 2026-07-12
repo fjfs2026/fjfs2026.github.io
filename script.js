@@ -106,6 +106,7 @@ const BASE_PRODUCTS = [
   product("potato-pies", "Пирожки с картошкой", 60, "60 ₽", "hot", "in", "images/Пирожки с картошкой.webp"),
   product("barsh","Б1арш, йоьхьш",690,"690 ₽","hot","in","images/Б1арш, йоьхьш.webp","",0,"","1 кг"),
   product(  "home-nuts",  "Домашние орешки",  25, "25 ₽", "desserts", "in","images/Домашние орешки.webp", "", 0, "", "1 шт"),
+  product(  "meatballs",  "Фрикадельки",  900, "900 ₽", "semi", "in","images/Фрикадельки 20шт 900р.webp", "", 0, "", "20 шт"),
   product( "lapsha-container", "Лапша контейнер", 350, "350 ₽",  "semi",  "in", "images/Лапша контейнер.webp",  "", 0, "", "")
 ];
 
